@@ -17,7 +17,9 @@ import piexif
 def decimal_lat_long(image):
     """
     This function receives a piexif image object, extracts the GPS location info
-    and converts it to decimal. It returns the latitude and longitude in a tuple.
+    and converts it to decimal.
+
+    Returns: the latitude and longitude in a tuple.
     """
 
     gpslatref = image['GPS']
@@ -25,6 +27,8 @@ def decimal_lat_long(image):
         latitude_mult = 1 if image['GPS']['GPSLatitudeRef'].decode() == 'N' else -1
     else:
         return 0, 0
+
+    # Read and convert Latitude
     gps_lat_array = image['GPS']['GPSLatitude']
     if gps_lat_array[0][1] and gps_lat_array[1][1] and gps_lat_array[2][1]:
         latitude_deg = gps_lat_array[0][0] // gps_lat_array[0][1]
@@ -34,6 +38,7 @@ def decimal_lat_long(image):
     else:
         la = ''
 
+    # Read and convert Longitude
     longitude_mult = 1 if image['GPS']['GPSLongitudeRef'].decode() == 'E' else -1
     gps_long_array = image['GPS']['GPSLongitude']
     if gps_long_array[2][1] and gps_long_array[2][1] and gps_long_array[2][1]:
@@ -48,14 +53,16 @@ def decimal_lat_long(image):
 
 
 if __name__ == '__main__':
+
+    # Parse the command line arguments
     my_parser = argparse.ArgumentParser(description='Analyze the jpgs in a folder for EXIF info and store in CSV file')
     my_parser.add_argument('Path', metavar='path', type=str, help='The Path to the image directory')
     my_parser.add_argument('CSV', metavar='csv', type=str, help='The name of the CSV file')
-
     args = my_parser.parse_args()
     input_path = args.Path
     csv_file_name = args.CSV
 
+    # Test for a valid path
     if not os.path.isdir(input_path):
         print('The path specified does not exist')
         sys.exit()
@@ -70,29 +77,38 @@ if __name__ == '__main__':
         print("Couldn't open the csv file")
         sys.exit()
 
+    # Loop through files to process
     file_list = os.listdir(input_path)
-
     for file_name in file_list:
-        # print(os.path.join('test_images',file_name))
+
+        # Clear vars of values 
+        file, camera, gps_lat, gps_long = None, None, None, None
+
+        # Test for valid EXIF image
         try:
             img = piexif.load(os.path.join(input_path, file_name), 'Exif')
         except piexif._exceptions.InvalidImageDataError:
+            print('Image:', os.path.join(input_path, file_name))
             print('Not a jpg or tiff file')
+            print()
             pass
+
+        # Retrieve EXIF info
         file = os.path.join(input_path, file_name)
         print('Image:', os.path.join(input_path, file_name))
-        if 'Make' in img['0th']:
-            print('Camera:', img['0th']['Make'].decode(), img['0th']['Model'].decode())
-            camera = img['0th']['Make'].decode() + ' ' + img['0th']['Model'].decode()
-        else:
-            print('Camera: Unidentified')
-            camera = 'Unidentified'
 
+        # Retrieve camera make
+        if 'Make' in img['0th']:
+            camera = img['0th']['Make'].decode() + ' ' + img['0th']['Model'].decode()
+            print('Camera:', camera)
+        else:
+            camera = 'Unidentified'
+            print('Camera:', camera)
+
+        # Retrieve and convert latitude and longitude
         if 'GPSLatitudeRef' in img['GPS']:
-            (latitude, longitude) = decimal_lat_long(img)
-            print(f'Lat/Long: {latitude}, {longitude}')
-            gps_lat = latitude
-            gps_long = longitude
+            (gps_lat, gps_long) = decimal_lat_long(img)
+            print(f'Lat/Long: {gps_lat}, {gps_long}')
             csv_writer.writerow([file, camera, gps_lat, gps_long])
             print()
         else:
@@ -100,4 +116,3 @@ if __name__ == '__main__':
             gps = 'No GPS info found'
             csv_writer.writerow([file, camera, '', ''])
             print()
-        file, camera, gps_lat, gps_long = None, None, None, None
