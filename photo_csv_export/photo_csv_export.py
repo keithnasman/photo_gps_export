@@ -14,7 +14,7 @@ import csv
 import piexif
 
 
-def decimal_lat_long(image):
+def convert_coordinates_to_decimal(image):
     """
     This function receives a piexif image object, extracts the GPS location info
     and converts it to decimal.
@@ -22,43 +22,43 @@ def decimal_lat_long(image):
     Returns: the latitude and longitude in a tuple.
     """
 
-    gpslatref = image['GPS']
-    if gpslatref:
-        latitude_mult = 1 if image['GPS']['GPSLatitudeRef'].decode() == 'N' else -1
+    gps_latitude_ref = image['GPS']
+    if gps_latitude_ref:
+        latitude_multiplier = 1 if image['GPS']['GPSLatitudeRef'].decode() == 'N' else -1
     else:
         return 0, 0
 
     # Read and convert Latitude
-    gps_lat_array = image['GPS']['GPSLatitude']
-    if gps_lat_array[0][1] and gps_lat_array[1][1] and gps_lat_array[2][1]:
-        latitude_deg = gps_lat_array[0][0] // gps_lat_array[0][1]
-        latitude_min = gps_lat_array[1][0] // gps_lat_array[1][1]
-        latitude_sec = gps_lat_array[2][0] // gps_lat_array[2][1]
-        la = latitude_mult * round(latitude_deg + latitude_min / 60 + latitude_sec / 3600, 4)
+    gps_latitude_array = image['GPS']['GPSLatitude']
+    if gps_latitude_array[0][1] and gps_latitude_array[1][1] and gps_latitude_array[2][1]:
+        latitude_degrees = gps_latitude_array[0][0] // gps_latitude_array[0][1]
+        latitude_minutes = gps_latitude_array[1][0] // gps_latitude_array[1][1]
+        latitude_seconds = gps_latitude_array[2][0] // gps_latitude_array[2][1]
+        latitude = latitude_multiplier * round(latitude_degrees + latitude_minutes / 60 + latitude_seconds / 3600, 4)
     else:
-        la = ''
+        latitude = ''
 
     # Read and convert Longitude
-    longitude_mult = 1 if image['GPS']['GPSLongitudeRef'].decode() == 'E' else -1
-    gps_long_array = image['GPS']['GPSLongitude']
-    if gps_long_array[2][1] and gps_long_array[2][1] and gps_long_array[2][1]:
-        longitude_deg = gps_long_array[0][0] // gps_long_array[0][1]
-        longitude_min = gps_long_array[1][0] // gps_long_array[1][1]
-        longitude_sec = gps_long_array[2][0] // gps_long_array[2][1]
-        lo = longitude_mult * round((longitude_deg + longitude_min / 60 + longitude_sec / 3600), 4)
+    longitude_multiplier = 1 if image['GPS']['GPSLongitudeRef'].decode() == 'E' else -1
+    gps_longitude_array = image['GPS']['GPSLongitude']
+    if gps_longitude_array[2][1] and gps_longitude_array[2][1] and gps_longitude_array[2][1]:
+        longitude_degrees = gps_longitude_array[0][0] // gps_longitude_array[0][1]
+        longitude_minutes = gps_longitude_array[1][0] // gps_longitude_array[1][1]
+        longitude_seconds = gps_longitude_array[2][0] // gps_longitude_array[2][1]
+        longitude = longitude_multiplier * round((longitude_degrees + longitude_minutes / 60 + longitude_seconds / 3600), 4)
     else:
-        lo = ''
+        longitude = ''
 
-    return la, lo
+    return latitude, longitude
 
 
 if __name__ == '__main__':
 
     # Parse the command line arguments
-    my_parser = argparse.ArgumentParser(description='Analyze the jpgs in a folder for EXIF info and store in CSV file')
-    my_parser.add_argument('Path', metavar='path', type=str, help='The Path to the image directory')
-    my_parser.add_argument('CSV', metavar='csv', type=str, help='The name of the CSV file')
-    args = my_parser.parse_args()
+    argument_parser = argparse.ArgumentParser(description='Analyze the jpgs in a folder for EXIF info and store in CSV file')
+    argument_parser.add_argument('Path', metavar='path', type=str, help='The Path to the image directory')
+    argument_parser.add_argument('CSV', metavar='csv', type=str, help='The name of the CSV file')
+    args = argument_parser.parse_args()
     input_path = args.Path
     csv_file_name = args.CSV
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     for file_name in file_list:
 
         # Clear vars of values 
-        file, camera, gps_lat, gps_long = None, None, None, None
+        file, camera, gps_latitude, gps_longitude = None, None, None, None
 
         # Test for image file
         
@@ -107,9 +107,9 @@ if __name__ == '__main__':
 
             # Retrieve and convert latitude and longitude
             if 'GPSLatitudeRef' in img['GPS']:
-                (gps_lat, gps_long) = decimal_lat_long(img)
-                print(f'Lat/Long: {gps_lat}, {gps_long}')
-                csv_writer.writerow([file, camera, gps_lat, gps_long])
+                (gps_latitude, gps_longitude) = convert_coordinates_to_decimal(img)
+                print(f'Lat/Long: {gps_latitude}, {gps_longitude}')
+                csv_writer.writerow([file, camera, gps_latitude, gps_longitude])
                 print()
             else:
                 print('No GPS info found')
