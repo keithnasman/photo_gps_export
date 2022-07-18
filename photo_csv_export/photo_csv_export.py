@@ -84,35 +84,39 @@ if __name__ == '__main__':
         # Clear vars of values 
         file, camera, gps_lat, gps_long = None, None, None, None
 
+        # Test for image file
+        
+        
         # Test for valid EXIF image
         try:
             img = piexif.load(os.path.join(input_path, file_name), 'Exif')
+            # Retrieve EXIF info
+            file = os.path.join(input_path, file_name)
+            print('Image:', os.path.join(input_path, file_name))
+            print()
+            
+            # Retrieve camera make
+            if 'Make' in img['0th']:
+                camera = img['0th']['Make'].decode() + ' ' + img['0th']['Model'].decode()
+                print('Camera:', camera)
+                print()
+            else:
+                camera = 'Unidentified'
+                print('Camera:', camera)
+                print()
+
+            # Retrieve and convert latitude and longitude
+            if 'GPSLatitudeRef' in img['GPS']:
+                (gps_lat, gps_long) = decimal_lat_long(img)
+                print(f'Lat/Long: {gps_lat}, {gps_long}')
+                csv_writer.writerow([file, camera, gps_lat, gps_long])
+                print()
+            else:
+                print('No GPS info found')
+                csv_writer.writerow([file, camera, '', ''])
+                print()
         except piexif._exceptions.InvalidImageDataError:
             print('Image:', os.path.join(input_path, file_name))
-            print('Not a jpg or tiff file')
+            print('No EXIF information')
             print()
             pass
-
-        # Retrieve EXIF info
-        file = os.path.join(input_path, file_name)
-        print('Image:', os.path.join(input_path, file_name))
-
-        # Retrieve camera make
-        if 'Make' in img['0th']:
-            camera = img['0th']['Make'].decode() + ' ' + img['0th']['Model'].decode()
-            print('Camera:', camera)
-        else:
-            camera = 'Unidentified'
-            print('Camera:', camera)
-
-        # Retrieve and convert latitude and longitude
-        if 'GPSLatitudeRef' in img['GPS']:
-            (gps_lat, gps_long) = decimal_lat_long(img)
-            print(f'Lat/Long: {gps_lat}, {gps_long}')
-            csv_writer.writerow([file, camera, gps_lat, gps_long])
-            print()
-        else:
-            print("No GPS info found")
-            gps = 'No GPS info found'
-            csv_writer.writerow([file, camera, '', ''])
-            print()
