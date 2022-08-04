@@ -1,7 +1,12 @@
+#!/usr/bin/python3
+#
 # cli.py
+#
+# 2022-08-04 - Keith Nasman - keithnasman@gmail.com
+#
+# Usage: as module for handling command line options
 
 import argparse
-import sys
 
 __version__ = "0.1.0"
 
@@ -12,7 +17,7 @@ def parse_command_line_arguments():
 
     parser = argparse.ArgumentParser(
         prog="photo_csv_export",
-        description='Analyze the jpgs in a folder for EXIF info and store in CSV file',
+        description='Analyze the jpgs in a folder for EXIF GPS info and store in CSV file',
     )
     parser.add_argument(
         "Path",

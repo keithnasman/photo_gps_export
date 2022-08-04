@@ -2,7 +2,7 @@
 #
 # photo_csv.py
 #
-# 2022-07-03 - Keith Nasman - keithnasman@gmail.com
+# 2022-08-04 - Keith Nasman - keithnasman@gmail.com
 #
 # Usage: photo_csv <path to file>
 #
@@ -10,6 +10,7 @@ import sys
 import os.path
 import argparse
 import csv
+import cli
 
 import piexif
 
@@ -55,10 +56,7 @@ def convert_coordinates_to_decimal(image):
 if __name__ == '__main__':
 
     # Parse the command line arguments
-    argument_parser = argparse.ArgumentParser(description='Analyze the jpgs in a folder for EXIF info and store in CSV file')
-    argument_parser.add_argument('Path', metavar='path', type=str, help='The Path to the image directory')
-    argument_parser.add_argument('CSV', metavar='csv', type=str, help='The name of the CSV file')
-    args = argument_parser.parse_args()
+    args = cli.parse_command_line_arguments()
     input_path = args.Path
     csv_file_name = args.CSV
 
