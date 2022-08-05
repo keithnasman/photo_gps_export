@@ -15,22 +15,22 @@ import cli
 import piexif
 
 
-def convert_coordinates_to_decimal(image):
+def convert_coordinates_to_decimal(image_gps):
     """
-    This function receives a piexif image object, extracts the GPS location info
+    This function receives a piexif image gps dictionary, extracts the GPS location info
     and converts it to decimal.
 
     Returns: the latitude and longitude in a tuple.
     """
 
-    gps_latitude_ref = image['GPS']
+    gps_latitude_ref = image_gps
     if gps_latitude_ref:
-        latitude_multiplier = 1 if image['GPS']['GPSLatitudeRef'].decode() == 'N' else -1
+        latitude_multiplier = 1 if image_gps['GPSLatitudeRef'].decode() == 'N' else -1
     else:
         return 0, 0
 
     # Read and convert Latitude
-    gps_latitude_array = image['GPS']['GPSLatitude']
+    gps_latitude_array = image_gps['GPSLatitude']
     if gps_latitude_array[0][1] and gps_latitude_array[1][1] and gps_latitude_array[2][1]:
         latitude_degrees = gps_latitude_array[0][0] // gps_latitude_array[0][1]
         latitude_minutes = gps_latitude_array[1][0] // gps_latitude_array[1][1]
@@ -40,8 +40,8 @@ def convert_coordinates_to_decimal(image):
         latitude = ''
 
     # Read and convert Longitude
-    longitude_multiplier = 1 if image['GPS']['GPSLongitudeRef'].decode() == 'E' else -1
-    gps_longitude_array = image['GPS']['GPSLongitude']
+    longitude_multiplier = 1 if image_gps['GPSLongitudeRef'].decode() == 'E' else -1
+    gps_longitude_array = image_gps['GPSLongitude']
     if gps_longitude_array[0][1] and gps_longitude_array[1][1] and gps_longitude_array[2][1]:
         longitude_degrees = gps_longitude_array[0][0] // gps_longitude_array[0][1]
         longitude_minutes = gps_longitude_array[1][0] // gps_longitude_array[1][1]
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
             # Retrieve and convert latitude and longitude
             if 'GPSLatitudeRef' in img['GPS']:
-                (gps_latitude, gps_longitude) = convert_coordinates_to_decimal(img)
+                (gps_latitude, gps_longitude) = convert_coordinates_to_decimal(img['GPS'])
                 print(f'Lat/Long: {gps_latitude}, {gps_longitude}')
                 csv_writer.writerow([file, camera, gps_latitude, gps_longitude])
                 print()
