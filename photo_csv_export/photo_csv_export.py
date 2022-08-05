@@ -42,7 +42,7 @@ def convert_coordinates_to_decimal(image):
     # Read and convert Longitude
     longitude_multiplier = 1 if image['GPS']['GPSLongitudeRef'].decode() == 'E' else -1
     gps_longitude_array = image['GPS']['GPSLongitude']
-    if gps_longitude_array[2][1] and gps_longitude_array[2][1] and gps_longitude_array[2][1]:
+    if gps_longitude_array[0][1] and gps_longitude_array[1][1] and gps_longitude_array[2][1]:
         longitude_degrees = gps_longitude_array[0][0] // gps_longitude_array[0][1]
         longitude_minutes = gps_longitude_array[1][0] // gps_longitude_array[1][1]
         longitude_seconds = gps_longitude_array[2][0] // gps_longitude_array[2][1]
@@ -95,7 +95,7 @@ if __name__ == '__main__':
             
             # Retrieve camera make
             if 'Make' in img['0th']:
-                camera = img['0th']['Make'].decode() + ' ' + img['0th']['Model'].decode()
+                camera = f"{img['0th']['Make'].decode()} {img['0th']['Model'].decode()}"
                 print('Camera:', camera)
                 print()
             else:
