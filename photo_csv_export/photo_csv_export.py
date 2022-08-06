@@ -8,7 +8,6 @@
 #
 import sys
 import os.path
-import argparse
 import csv
 import cli
 
@@ -46,7 +45,8 @@ def convert_coordinates_to_decimal(image_gps):
         longitude_degrees = gps_longitude_array[0][0] // gps_longitude_array[0][1]
         longitude_minutes = gps_longitude_array[1][0] // gps_longitude_array[1][1]
         longitude_seconds = gps_longitude_array[2][0] // gps_longitude_array[2][1]
-        longitude = longitude_multiplier * round((longitude_degrees + longitude_minutes / 60 + longitude_seconds / 3600), 4)
+        longitude = longitude_multiplier * \
+            round((longitude_degrees + longitude_minutes / 60 + longitude_seconds / 3600), 4)
     else:
         longitude = ''
 
@@ -83,7 +83,6 @@ if __name__ == '__main__':
         file, camera, gps_latitude, gps_longitude = None, None, None, None
 
         # Test for image file
-        
         
         # Test for valid EXIF image
         try:
