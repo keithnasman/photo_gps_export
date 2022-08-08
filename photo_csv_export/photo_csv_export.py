@@ -34,7 +34,8 @@ def convert_coordinates_to_decimal(image_gps):
         latitude_degrees = gps_latitude_array[0][0] // gps_latitude_array[0][1]
         latitude_minutes = gps_latitude_array[1][0] // gps_latitude_array[1][1]
         latitude_seconds = gps_latitude_array[2][0] // gps_latitude_array[2][1]
-        latitude = latitude_multiplier * round(latitude_degrees + latitude_minutes / 60 + latitude_seconds / 3600, 4)
+        latitude = latitude_multiplier * \
+            round(latitude_degrees + latitude_minutes / 60 + latitude_seconds / 3600, 4)
     else:
         latitude = ''
 
@@ -59,6 +60,8 @@ if __name__ == '__main__':
     args = cli.parse_command_line_arguments()
     input_path = args.Path
     csv_file_name = args.CSV
+    exclude = args.exclude
+    show = args.show
 
     # Test for a valid path
     if not os.path.isdir(input_path):
@@ -83,37 +86,43 @@ if __name__ == '__main__':
         file, camera, gps_latitude, gps_longitude = None, None, None, None
 
         # Test for image file
-        
+
         # Test for valid EXIF image
         try:
             img = piexif.load(os.path.join(input_path, file_name), 'Exif')
-            # Retrieve EXIF info
-            file = os.path.join(input_path, file_name)
-            print('Image:', os.path.join(input_path, file_name))
-            print()
-            
-            # Retrieve camera make
-            if 'Make' in img['0th']:
-                camera = f"{img['0th']['Make'].decode()} {img['0th']['Model'].decode()}"
-                print('Camera:', camera)
-                print()
-            else:
-                camera = 'Unidentified'
-                print('Camera:', camera)
-                print()
-
-            # Retrieve and convert latitude and longitude
-            if 'GPSLatitudeRef' in img['GPS']:
-                (gps_latitude, gps_longitude) = convert_coordinates_to_decimal(img['GPS'])
-                print(f'Lat/Long: {gps_latitude}, {gps_longitude}')
-                csv_writer.writerow([file, camera, gps_latitude, gps_longitude])
-                print()
-            else:
-                print('No GPS info found')
-                csv_writer.writerow([file, camera, '', ''])
-                print()
         except piexif._exceptions.InvalidImageDataError:
             print('Image:', os.path.join(input_path, file_name))
-            print('No EXIF information')
-            print()
+            if show:
+                print('No EXIF information')
+                print()
             pass
+
+        # Retrieve EXIF info
+        file = os.path.join(input_path, file_name)
+        if show:
+            print('Image:', os.path.join(input_path, file_name))
+
+        # Retrieve camera make
+        if 'Make' in img['0th']:
+            camera = f"{img['0th']['Make'].decode()} {img['0th']['Model'].decode()}"
+            if show:
+                print('Camera:', camera)
+        else:
+            camera = 'Unidentified'
+            if show:
+                print('Camera:', camera)
+
+        # Retrieve and convert latitude and longitude
+        if 'GPSLatitudeRef' in img['GPS']:
+            (gps_latitude, gps_longitude) = convert_coordinates_to_decimal(img['GPS'])
+            if show:
+                print(f'Lat/Long: {gps_latitude}, {gps_longitude}')
+                print()
+            csv_writer.writerow([file, camera, gps_latitude, gps_longitude])
+        else:
+            if show:
+                print('No GPS info found')
+                print()
+            if exclude:
+                continue
+            csv_writer.writerow([file, camera, '', ''])

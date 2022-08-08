@@ -30,6 +30,19 @@ def parse_command_line_arguments():
         type=str,
         help="The name of the CSV file",
     )
+    parser.add_argument(
+        "-x",
+        "--exclude",
+        action="store_true",
+        help="Exclude from the CSV file those files that don't have GPS coordinates",
+    )
+    parser.add_argument(
+        "-s",
+        "--show",
+        action="store_true",
+        help="Show output for each file",
+    )
+
     parser.version = f"photo_csv_export v{__version__}"
     parser.add_argument(
         "-v",
