@@ -10,6 +10,7 @@ import argparse
 
 __version__ = "0.1.0"
 
+
 def parse_command_line_arguments():
     """
     This function parses the command line arguments.

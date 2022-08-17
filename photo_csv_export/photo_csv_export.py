@@ -37,7 +37,7 @@ def convert_coordinates_to_decimal(image_gps):
         latitude = latitude_multiplier * \
             round(latitude_degrees + latitude_minutes / 60 + latitude_seconds / 3600, 4)
     else:
-        latitude = ''
+        latitude = None
 
     # Read and convert Longitude
     longitude_multiplier = 1 if image_gps['GPSLongitudeRef'].decode() == 'E' else -1
@@ -49,7 +49,7 @@ def convert_coordinates_to_decimal(image_gps):
         longitude = longitude_multiplier * \
             round((longitude_degrees + longitude_minutes / 60 + longitude_seconds / 3600), 4)
     else:
-        longitude = ''
+        longitude = None
 
     return latitude, longitude
 
@@ -103,10 +103,12 @@ if __name__ == '__main__':
             print('Image:', os.path.join(input_path, file_name))
 
         # Retrieve camera make
+        # noinspection PyUnboundLocalVariable
         if 'Make' in img['0th']:
             camera = f"{img['0th']['Make'].decode()} {img['0th']['Model'].decode()}"
             if show:
                 print('Camera:', camera)
+
         else:
             camera = 'Unidentified'
             if show:
@@ -126,3 +128,5 @@ if __name__ == '__main__':
             if exclude:
                 continue
             csv_writer.writerow([file, camera, '', ''])
+
+    csv_file.close()
