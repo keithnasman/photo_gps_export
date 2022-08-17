@@ -69,64 +69,60 @@ if __name__ == '__main__':
         sys.exit()
 
     # Open csv file
-    try:
-        csv_file = open(csv_file_name, 'w')
+    with open(csv_file_name, mode='w') as csv_file:
+        # csv_file = open(csv_file_name, 'w')
         fieldnames = ['file_name', 'camera', 'gps_lat', 'gps_long']
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(fieldnames)
-    except FileNotFoundError:
-        print("Couldn't open the csv file")
-        sys.exit()
 
-    # Loop through files to process
-    file_list = os.listdir(input_path)
-    for file_name in file_list:
+        # Loop through files to process
+        file_list = os.listdir(input_path)
+        for file_name in file_list:
 
-        # Clear vars of values 
-        file, camera, gps_latitude, gps_longitude = None, None, None, None
+            # Clear vars of values
+            file, camera, gps_latitude, gps_longitude = None, None, None, None
 
-        # Test for image file
+            # Test for image file
 
-        # Test for valid EXIF image
-        try:
-            img = piexif.load(os.path.join(input_path, file_name), 'Exif')
-        except piexif._exceptions.InvalidImageDataError:
-            print('Image:', os.path.join(input_path, file_name))
+            # Test for valid EXIF image
+            try:
+                img = piexif.load(os.path.join(input_path, file_name), 'Exif')
+            except piexif._exceptions.InvalidImageDataError:
+                print('Image:', os.path.join(input_path, file_name))
+                if show:
+                    print('No EXIF information')
+                    print()
+                pass
+
+            # Retrieve EXIF info
+            file = os.path.join(input_path, file_name)
             if show:
-                print('No EXIF information')
-                print()
-            pass
+                print('Image:', os.path.join(input_path, file_name))
 
-        # Retrieve EXIF info
-        file = os.path.join(input_path, file_name)
-        if show:
-            print('Image:', os.path.join(input_path, file_name))
+            # Retrieve camera make
+            # noinspection PyUnboundLocalVariable
+            if 'Make' in img['0th']:
+                camera = f"{img['0th']['Make'].decode()} {img['0th']['Model'].decode()}"
+                if show:
+                    print('Camera:', camera)
 
-        # Retrieve camera make
-        # noinspection PyUnboundLocalVariable
-        if 'Make' in img['0th']:
-            camera = f"{img['0th']['Make'].decode()} {img['0th']['Model'].decode()}"
-            if show:
-                print('Camera:', camera)
+            else:
+                camera = 'Unidentified'
+                if show:
+                    print('Camera:', camera)
 
-        else:
-            camera = 'Unidentified'
-            if show:
-                print('Camera:', camera)
+            # Retrieve and convert latitude and longitude
+            if 'GPSLatitudeRef' in img['GPS']:
+                (gps_latitude, gps_longitude) = convert_coordinates_to_decimal(img['GPS'])
+                if show:
+                    print(f'Lat/Long: {gps_latitude}, {gps_longitude}')
+                    print()
+                csv_writer.writerow([file, camera, gps_latitude, gps_longitude])
+            else:
+                if show:
+                    print('No GPS info found')
+                    print()
+                if exclude:
+                    continue
+                csv_writer.writerow([file, camera, '', ''])
 
-        # Retrieve and convert latitude and longitude
-        if 'GPSLatitudeRef' in img['GPS']:
-            (gps_latitude, gps_longitude) = convert_coordinates_to_decimal(img['GPS'])
-            if show:
-                print(f'Lat/Long: {gps_latitude}, {gps_longitude}')
-                print()
-            csv_writer.writerow([file, camera, gps_latitude, gps_longitude])
-        else:
-            if show:
-                print('No GPS info found')
-                print()
-            if exclude:
-                continue
-            csv_writer.writerow([file, camera, '', ''])
-
-    csv_file.close()
